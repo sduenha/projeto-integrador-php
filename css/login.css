@@ -1,4 +1,4 @@
-        * {
+* {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
@@ -9,7 +9,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            background: linear-gradient(135deg, #8B2F5C 0%, #C85A8E 50%, #E8A5C0 100%);
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #93c5fd 100%);
             overflow: hidden;
         }
 
@@ -21,7 +21,7 @@
          .title-h3{
             font-family: "Poppins";
             font-size: 1.4rem;
-            font-weight: 500;
+            font-weight: 800;
         }
 
         .container {
@@ -36,7 +36,7 @@
 
         .left-section {
             flex: 1;
-            background: linear-gradient(135deg, #8B2F5C 0%, #C85A8E 50%, #E8A5C0 100%);
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #93c5fd 100%);
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -64,23 +64,36 @@
             left: -20%;
             width: 350px;
             height: 350px;
-            background: rgba(139, 47, 92, 0.3);
+            background: rgba(30, 58, 138, 0.3);
             border-radius: 50%;
         }
 
-        /* Aqui vai ser as classes de active */
         .login-badge {
-            background: white;
+            background: transparent;
             padding: 20px 50px;
             border-radius: 50px;
-            color: #333;
+            color: white;
+            border: 2px solid white;
             z-index: 1;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            overflow: hidden;
+            position: relative;
         }
 
+        .login-badge:hover {
+            background: white;
+            color: #1e3a8a;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+        }
+
+    
         .sign-in-text {
             font-size: 18px;
             margin-top: 80px;
             z-index: 1;
+            color: white;
         }
 
         .right-section {
@@ -95,7 +108,7 @@
         .avatar {
             width: 80px;
             height: 80px;
-            background: linear-gradient(135deg, #C85A8E, #8B2F5C);
+            background: linear-gradient(135deg, #3b82f6, #1e3a8a);
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -111,7 +124,7 @@
 
         .right-section h2 {
             text-align: center;
-            color: #8B2F5C;
+            color: #1e3a8a;
             font-size: 32px;
             margin-bottom: 40px;
         }
@@ -132,7 +145,7 @@
         }
 
         .input-group input:focus {
-            border-bottom-color: #C85A8E;
+            border-bottom-color: #3b82f6;
         }
 
         .input-group svg {
@@ -151,27 +164,33 @@
         }
 
         .forgot-password a {
-            color: #999;
+            color: #6b7280;
             text-decoration: none;
             font-size: 14px;
+            transition: color 0.3s;
+        }
+
+        .forgot-password a:hover {
+            color: #3b82f6;
         }
 
         .login-btn {
             width: 100%;
             padding: 15px;
-            background: linear-gradient(135deg, #C85A8E, #8B2F5C);
+            background: linear-gradient(135deg, #3b82f6, #1e3a8a);
             color: white;
             border: none;
             border-radius: 50px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: transform 0.2s, box-shadow 0.3s;
             margin-bottom: 30px;
         }
 
         .login-btn:hover {
             transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
         }
 
         .social-login {
@@ -206,8 +225,9 @@
         }
 
         .social-btn:hover {
-            border-color: #C85A8E;
+            border-color: #3b82f6;
             transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
         }
 
         .social-btn img {
@@ -215,18 +235,99 @@
             height: 20px;
         }
 
-        @media (max-width: 768px) {
+        @media (max-width: 900px) {
             .container {
                 flex-direction: column;
                 width: 90%;
+                max-width: 500px;
                 height: auto;
             }
 
             .left-section {
-                padding: 30px;
+                padding: 40px;
+                clip-path: none;
+                border-radius: 20px 20px 0 0;
+                min-height: 150px;
             }
 
-            .sign-in-text {
-                margin-top: 20px;
+            .left-section::before {
+                width: 250px;
+                height: 250px;
+                top: -30%;
+                right: -20%;
+            }
+
+            .left-section::after {
+                width: 200px;
+                height: 200px;
+                bottom: -20%;
+                left: -10%;
+            }
+
+            .login-badge {
+                padding: 15px 40px;
+            }
+
+            .title-h3 {
+                font-size: 1.5rem;
+            }
+
+            .title-h2 {
+                display: none;
+            }
+            
+            .right-section {
+                padding: 40px 30px;
+                border-radius: 0 0 20px 20px;
+            }
+
+            .right-section h2 {
+                font-size: 28px;
+                margin-bottom: 30px;
+            }
+
+            .input-group {
+                margin-bottom: 20px;
+            }
+
+            .login-btn {
+                margin-bottom: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                width: 95%;
+            }
+
+            .left-section {
+                padding: 30px 20px;
+                min-height: 120px;
+            }
+
+            .right-section {
+                padding: 30px 20px;
+            }
+
+            .right-section h2 {
+                font-size: 24px;
+            }
+
+            .login-badge {
+                padding: 12px 30px;
+            }
+
+            .title-h3 {
+                font-size: 1rem;
+            }
+
+            .input-group input {
+                padding: 12px 12px 12px 40px;
+                font-size: 14px;
+            }
+
+            .login-btn {
+                padding: 12px;
+                font-size: 14px;
             }
         }
