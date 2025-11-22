@@ -2,6 +2,12 @@
 $nivel = 1;
 include '../includes/header.php';
 
+if (!isProprietario()) {
+    definirMensagem('error', 'Acesso negado! Apenas proprietários podem gerenciar modalidades.');
+    header('Location: index.php');
+    exit;
+}
+
 if (!isset($_GET['id'])) {
     definirMensagem('error', 'ID do professor não informado');
     header('Location: index.php');
@@ -11,7 +17,7 @@ if (!isset($_GET['id'])) {
 $id = (int)$_GET['id'];
 
 // Verificar se professor existe
-$sql = "SELECT nome FROM professores WHERE id = ?";
+$sql = "SELECT nome_professor FROM professores WHERE id_professor = ?";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $id);
 $stmt->execute();
@@ -27,12 +33,12 @@ $professor = $result->fetch_assoc();
 $stmt->close();
 
 // Excluir professor (CASCADE irá excluir vínculos e aulas)
-$sql = "DELETE FROM professores WHERE id = ?";
+$sql = "DELETE FROM professores WHERE id_professor = ?";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $id);
 
 if ($stmt->execute()) {
-    definirMensagem('success', 'Professor "' . $professor['nome'] . '" excluído com sucesso!');
+    definirMensagem('success', 'Professor "' . $professor['nome_professor'] . '" excluído com sucesso!');
 } else {
     definirMensagem('error', 'Erro ao excluir professor: ' . $stmt->error);
 }

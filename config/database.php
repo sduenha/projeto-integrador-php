@@ -81,11 +81,11 @@ function verificarLogin() {
     
     // Atualizar último acesso
     if (isset($_SESSION['ultima_atualizacao']) && 
-        (time() - $_SESSION['ultima_atualizacao'] > 300)) { // 5 minutos
+        (time() - $_SESSION['ultima_atualizacao'] > 300)) {
         
         $conn = conectarBanco();
         $usuario_id = $_SESSION['usuario_id'];
-        $sql = "UPDATE usuarios SET ultimo_acesso = NOW() WHERE id = ?";
+        $sql = "UPDATE usuarios SET ultimo_acesso = NOW() WHERE id_usuario = ?";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("i", $usuario_id);
         $stmt->execute();
@@ -138,19 +138,19 @@ function fazerLogin($email, $senha) {
         
         if ($senha_valida) {
             // Login bem-sucedido
-            $_SESSION['usuario_id'] = $usuario['id'];
+            $_SESSION['usuario_id'] = $usuario['id_usuario'];
             $_SESSION['usuario_nome'] = $usuario['nome'];
             $_SESSION['usuario_email'] = $usuario['email'];
             $_SESSION['usuario_tipo'] = $usuario['tipo_usuario'];
             $_SESSION['vinculo_id'] = $usuario['vinculo_id'];
             $_SESSION['ultima_atualizacao'] = time();
             
-            error_log("LOGIN BEM-SUCEDIDO para usuário ID: " . $usuario['id']);
+            error_log("LOGIN BEM-SUCEDIDO para usuário ID: " . $usuario['id_usuario']);
             
             // Atualizar último acesso
-            $sql = "UPDATE usuarios SET ultimo_acesso = NOW() WHERE id = ?";
+            $sql = "UPDATE usuarios SET ultimo_acesso = NOW() WHERE id_usuario = ?";
             $stmt2 = $conn->prepare($sql);
-            $stmt2->bind_param("i", $usuario['id']);
+            $stmt2->bind_param("i", $usuario['id_usuario']);
             $stmt2->execute();
             $stmt2->close();
             

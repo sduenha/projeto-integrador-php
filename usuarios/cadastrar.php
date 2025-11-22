@@ -10,94 +10,62 @@ if (!isProprietario()) {
 }
 
 // Buscar professores e alunos para vínculo
-$professores = $conn->query("SELECT id, nome FROM professores WHERE ativo = 1 ORDER BY nome");
-$alunos = $conn->query("SELECT id, nome FROM alunos WHERE ativo = 1 ORDER BY nome");
+$professores = $conn->query("SELECT id_professor, nome_professor FROM professores WHERE ativo = 1 ORDER BY nome_professor");
+$alunos = $conn->query("SELECT id_aluno, nome FROM alunos WHERE ativo = 1 ORDER BY nome");
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nome = sanitizarDados($conn, $_POST['nome']);
     $email = sanitizarDados($conn, $_POST['email']);
-    $telefone = sanitizarDados($conn, $_POST['telefone']);
-    $data_nascimento = sanitizarDados($conn, $_POST['data_nascimento']);
-    $endereco = sanitizarDados($conn, $_POST['endereco']);
-    $criar_usuario = isset($_POST['criar_usuario']) ? true : false;
-    $senha_inicial = $_POST['senha_inicial'];
+    $senha = $_POST['senha'];
+    $senha_confirma = $_POST['senha_confirma'];
+    $tipo_usuario = sanitizarDados($conn, $_POST['tipo_usuario']);
+    $vinculo_id = !empty($_POST['vinculo_id']) ? (int)$_POST['vinculo_id'] : NULL;
     
-    // Validações
     $erros = [];
     
     if (empty($nome)) {
         $erros[] = "O nome é obrigatório";
     }
     
-    if (empty($email)) {
-        $erros[] = "O email é obrigatório";
-    } elseif (!validarEmail($email)) {
+    if (empty($email) || !validarEmail($email)) {
         $erros[] = "Email inválido";
     } else {
-        // Verificar se email já existe
-        $sql = "SELECT id FROM alunos WHERE email = ?";
+        // Verificar email duplicado
+        $sql = "SELECT id_usuario FROM usuarios WHERE email = ?";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("s", $email);
         $stmt->execute();
-        $result = $stmt->get_result();
-        
-        if ($result->num_rows > 0) {
+        if ($stmt->get_result()->num_rows > 0) {
             $erros[] = "Este email já está cadastrado";
         }
         $stmt->close();
     }
     
-    // Validar senha se for criar usuário
-    if ($criar_usuario) {
-        if (empty($senha_inicial)) {
-            $erros[] = "A senha inicial é obrigatória para criar acesso ao sistema";
-        } elseif (strlen($senha_inicial) < 6) {
-            $erros[] = "A senha deve ter no mínimo 6 caracteres";
-        }
+    if (empty($senha) || strlen($senha) < 6) {
+        $erros[] = "A senha deve ter no mínimo 6 caracteres";
+    }
+    
+    if ($senha !== $senha_confirma) {
+        $erros[] = "As senhas não coincidem";
     }
     
     if (empty($erros)) {
-        // Iniciar transação
-        $conn->begin_transaction();
+        $senha_hash = password_hash($senha, PASSWORD_DEFAULT);
         
-        try {
-            // 1. Inserir aluno
-            $sql = "INSERT INTO alunos (nome, email, telefone, data_nascimento, endereco) VALUES (?, ?, ?, ?, ?)";
-            $stmt = $conn->prepare($sql);
-            $stmt->bind_param("sssss", $nome, $email, $telefone, $data_nascimento, $endereco);
-            $stmt->execute();
-            
-            $aluno_id = $conn->insert_id;
-            $stmt->close();
-            
-            // 2. Criar usuário se solicitado
-            if ($criar_usuario) {
-                $senha_hash = password_hash($senha_inicial, PASSWORD_DEFAULT);
-                $tipo_usuario = 'aluno';
-                
-                $sql = "INSERT INTO usuarios (nome, email, senha, tipo_usuario, vinculo_id) VALUES (?, ?, ?, ?, ?)";
-                $stmt = $conn->prepare($sql);
-                $stmt->bind_param("ssssi", $nome, $email, $senha_hash, $tipo_usuario, $aluno_id);
-                $stmt->execute();
-                $stmt->close();
-                
-                $mensagem_sucesso = "Aluno cadastrado com sucesso! Usuário criado com email: {$email} e senha: {$senha_inicial}";
-            } else {
-                $mensagem_sucesso = "Aluno cadastrado com sucesso!";
-            }
-            
-            $conn->commit();
-            definirMensagem('success', $mensagem_sucesso);
+        $sql = "INSERT INTO usuarios (nome, email, senha, tipo_usuario, vinculo_id) VALUES (?, ?, ?, ?, ?)";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("ssssi", $nome, $email, $senha_hash, $tipo_usuario, $vinculo_id);
+        
+        if ($stmt->execute()) {
+            definirMensagem('success', 'Usuário cadastrado com sucesso!');
             header('Location: index.php');
             exit;
-            
-        } catch (Exception $e) {
-            $conn->rollback();
-            $erros[] = "Erro ao cadastrar aluno: " . $e->getMessage();
+        } else {
+            $erros[] = "Erro ao cadastrar usuário";
         }
+        $stmt->close();
     }
     
-    // Exibir erros
     if (!empty($erros)) {
         foreach ($erros as $erro) {
             echo "<div class='mensagem mensagem-erro'>{$erro}</div>";
@@ -153,31 +121,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </select>
         </div>
     </div>
-
-    <div class="section" style="background: #dbeafe; padding: 20px; border-radius: 8px; border-left: 4px solid #3b82f6; margin-top: 20px;">
-        <h3 style="color: #1e40af; margin-bottom: 15px;">🔐 Acesso ao Sistema</h3>
-        <p style="color: #1e40af; margin-bottom: 15px;">
-            Marque a opção abaixo para criar automaticamente um usuário para este aluno acessar o sistema e visualizar suas aulas.
-        </p>
-        
-        <div class="form-group">
-            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                <input type="checkbox" name="criar_usuario" id="criar_usuario" onchange="toggleSenha()" 
-                    <?php echo (isset($_POST['criar_usuario'])) ? 'checked' : ''; ?>>
-                <strong>Criar acesso ao sistema para este aluno</strong>
-            </label>
-        </div>
-        
-        <div class="form-group" id="campo-senha" style="display: <?php echo (isset($_POST['criar_usuario'])) ? 'block' : 'none'; ?>;">
-            <label for="senha_inicial">Senha Inicial * (mín. 6 caracteres)</label>
-            <input type="text" id="senha_inicial" name="senha_inicial" minlength="6" 
-                placeholder="Digite uma senha inicial para o aluno"
-                value="<?php echo isset($_POST['senha_inicial']) ? htmlspecialchars($_POST['senha_inicial']) : ''; ?>">
-            <small style="color: #1e40af; display: block; margin-top: 5px;">
-                💡 Dica: Use uma senha simples como "123456" ou "primeiroAcesso". O aluno poderá alterá-la depois.
-            </small>
-        </div>
-    </div>
     
     <div class="form-actions">
         <button type="submit" class="btn btn-success">💾 Cadastrar</button>
@@ -201,23 +144,17 @@ function mostrarVinculo() {
         campoVinculo.style.display = 'block';
         labelVinculo.textContent = 'Vincular ao Professor';
         professores.forEach(prof => {
-            selectVinculo.innerHTML += `<option value="${prof.id}">${prof.nome}</option>`;
+            selectVinculo.innerHTML += `<option value="${prof.id_professor}">${prof.nome_professor}</option>`;
         });
     } else if (tipo === 'aluno') {
         campoVinculo.style.display = 'block';
         labelVinculo.textContent = 'Vincular ao Aluno';
         alunos.forEach(aluno => {
-            selectVinculo.innerHTML += `<option value="${aluno.id}">${aluno.nome}</option>`;
+            selectVinculo.innerHTML += `<option value="${aluno.id_aluno}">${aluno.nome}</option>`;
         });
     } else {
         campoVinculo.style.display = 'none';
     }
-}
-
-function toggleSenha() {
-    const checkbox = document.getElementById('criar_usuario');
-    const campoSenha = document.getElementById('campo-senha');
-    campoSenha.style.display = checkbox.checked ? 'block' : 'none';
 }
 
 // Carregar na inicialização

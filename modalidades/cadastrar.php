@@ -3,6 +3,12 @@ $titulo = "Cadastrar Modalidade";
 $nivel = 1;
 include '../includes/header.php';
 
+if (!isProprietario()) {
+    definirMensagem('error', 'Acesso negado! Apenas proprietários podem gerenciar modalidades.');
+    header('Location: index.php');
+    exit;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nome = sanitizarDados($conn, $_POST['nome']);
     $descricao = sanitizarDados($conn, $_POST['descricao']);
@@ -53,7 +59,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <form method="POST" action="">
     <div class="form-group">
         <label for="nome">Nome da Modalidade *</label>
-        <input type="text" id="nome" name="nome" required placeholder="Ex: Yoga, Pilates, Ballet" value="<?php echo isset($_POST['nome']) ? htmlspecialchars($_POST['nome']) : ''; ?>">
+        <input type="text" id="nome" name="nome" required placeholder="Ex: Yoga, Pilates, Ballet" 
+               value="<?php echo isset($_POST['nome']) ? htmlspecialchars($_POST['nome']) : ''; ?>">
     </div>
     
     <div class="form-group">
@@ -64,12 +71,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="form-row">
         <div class="form-group">
             <label for="duracao_minutos">Duração (minutos) *</label>
-            <input type="number" id="duracao_minutos" name="duracao_minutos" required min="1" value="<?php echo isset($_POST['duracao_minutos']) ? $_POST['duracao_minutos'] : '60'; ?>">
+            <input type="number" id="duracao_minutos" name="duracao_minutos" required min="1" 
+                   value="<?php echo isset($_POST['duracao_minutos']) ? $_POST['duracao_minutos'] : '60'; ?>">
         </div>
         
         <div class="form-group">
             <label for="vagas_maximas">Vagas Máximas *</label>
-            <input type="number" id="vagas_maximas" name="vagas_maximas" required min="1" value="<?php echo isset($_POST['vagas_maximas']) ? $_POST['vagas_maximas'] : '20'; ?>">
+            <input type="number" id="vagas_maximas" name="vagas_maximas" required min="1" 
+                   value="<?php echo isset($_POST['vagas_maximas']) ? $_POST['vagas_maximas'] : '20'; ?>">
         </div>
     </div>
     

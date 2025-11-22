@@ -13,20 +13,22 @@ if (!isProprietario()) {
 // Buscar todos os usuários
 $sql = "SELECT u.*, 
         CASE 
-            WHEN u.tipo_usuario = 'professor' THEN p.nome
+            WHEN u.tipo_usuario = 'professor' THEN p.nome_professor
             WHEN u.tipo_usuario = 'aluno' THEN a.nome
             ELSE NULL
         END as nome_vinculo
         FROM usuarios u
-        LEFT JOIN professores p ON u.vinculo_id = p.id AND u.tipo_usuario = 'professor'
-        LEFT JOIN alunos a ON u.vinculo_id = a.id AND u.tipo_usuario = 'aluno'
+        LEFT JOIN professores p ON u.vinculo_id = p.id_professor AND u.tipo_usuario = 'professor'
+        LEFT JOIN alunos a ON u.vinculo_id = a.id_aluno AND u.tipo_usuario = 'aluno'
         ORDER BY u.tipo_usuario, u.nome";
 $result = $conn->query($sql);
 ?>
 
 <div class="content-header">
     <h2>Gerenciamento de Usuários</h2>
-    <a href="cadastrar.php" class="btn btn-primary">➕ Novo Usuário</a>
+    <?php if (isProprietario()): ?>
+        <a href="cadastrar.php" class="btn btn-primary">➕ Novo Usuário</a>
+    <?php endif; ?>
 </div>
 
 <?php if ($result && $result->num_rows > 0): ?>
@@ -47,7 +49,7 @@ $result = $conn->query($sql);
             <tbody>
                 <?php while ($usuario = $result->fetch_assoc()): ?>
                     <tr>
-                        <td><?php echo $usuario['id']; ?></td>
+                        <td><?php echo $usuario['id_usuario']; ?></td>
                         <td><strong><?php echo htmlspecialchars($usuario['nome']); ?></strong></td>
                         <td><?php echo htmlspecialchars($usuario['email']); ?></td>
                         <td>
@@ -65,9 +67,9 @@ $result = $conn->query($sql);
                             <?php endif; ?>
                         </td>
                         <td class="table-actions">
-                            <a href="editar.php?id=<?php echo $usuario['id']; ?>" class="btn btn-primary btn-small">✏️ Editar</a>
-                            <?php if ($usuario['id'] != $_SESSION['usuario_id']): ?>
-                                <a href="excluir.php?id=<?php echo $usuario['id']; ?>" class="btn btn-danger btn-small" onclick="return confirm('Tem certeza que deseja excluir este usuário?')">🗑️ Excluir</a>
+                            <a href="editar.php?id=<?php echo $usuario['id_usuario']; ?>" class="btn btn-primary btn-small">✏️ Editar</a>
+                            <?php if ($usuario['id_usuario'] != $_SESSION['usuario_id']): ?>
+                                <a href="excluir.php?id=<?php echo $usuario['id_usuario']; ?>" class="btn btn-danger btn-small" onclick="return confirm('Tem certeza que deseja excluir este usuário?')">🗑️ Excluir</a>
                             <?php endif; ?>
                         </td>
                     </tr>

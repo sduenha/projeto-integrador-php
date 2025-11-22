@@ -522,3 +522,11 @@ footer {
 .fade-in {
     animation: fadeIn 0.5s ease;
 }
+
+html {
+    scroll-behavior: smooth;
+}
+
+section[id], div[id] {
+    scroll-margin-top: 80px;
+}

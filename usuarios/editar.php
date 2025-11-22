@@ -18,7 +18,7 @@ if (!isset($_GET['id'])) {
 $id = (int)$_GET['id'];
 
 // Buscar usuário
-$sql = "SELECT * FROM usuarios WHERE id = ?";
+$sql = "SELECT * FROM usuarios WHERE id_usuario = ?";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $id);
 $stmt->execute();
@@ -43,8 +43,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     if (empty($nome)) {
         $erros[] = "O nome é obrigatório";
-    } else {
+    }
     
+    if (empty($email) || !validarEmail($email)) {
         $erros[] = "Email inválido";
     }
     
@@ -54,12 +55,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $erros[] = "A senha deve ter no mínimo 6 caracteres";
             } else {
                 $senha_hash = password_hash($senha_nova, PASSWORD_DEFAULT);
-                $sql = "UPDATE usuarios SET nome = ?, email = ?, senha = ?, ativo = ? WHERE id = ?";
+                $sql = "UPDATE usuarios SET nome = ?, email = ?, senha = ?, ativo = ? WHERE id_usuario = ?";
                 $stmt = $conn->prepare($sql);
                 $stmt->bind_param("sssii", $nome, $email, $senha_hash, $ativo, $id);
             }
         } else {
-            $sql = "UPDATE usuarios SET nome = ?, email = ?, ativo = ? WHERE id = ?";
+            $sql = "UPDATE usuarios SET nome = ?, email = ?, ativo = ? WHERE id_usuario = ?";
             $stmt = $conn->prepare($sql);
             $stmt->bind_param("ssii", $nome, $email, $ativo, $id);
         }
@@ -106,53 +107,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <input type="password" id="senha_nova" name="senha_nova" minlength="6" placeholder="Mínimo 6 caracteres">
     </div>
     
+    <div class="section" style="background: var(--light-bg); padding: 15px; border-radius: 8px;">
+        <h4 style="margin-bottom: 10px;">Informações do Usuário</h4>
+        <div class="info-list">
+            <div class="info-item">
+                <span class="info-label">Tipo:</span>
+                <span class="info-value">
+                    <span class="badge badge-info"><?php echo obterNomeTipoUsuario($usuario['tipo_usuario']); ?></span>
+                </span>
+            </div>
+            <?php if ($usuario['vinculo_id']): ?>
+                <div class="info-item">
+                    <span class="info-label">Vínculo ID:</span>
+                    <span class="info-value"><?php echo $usuario['vinculo_id']; ?></span>
+                </div>
+            <?php endif; ?>
+            <div class="info-item">
+                <span class="info-label">Cadastrado em:</span>
+                <span class="info-value"><?php echo date('d/m/Y H:i', strtotime($usuario['data_cadastro'])); ?></span>
+            </div>
+        </div>
+    </div>
+    
     <div class="form-group">
         <label>
             <input type="checkbox" name="ativo" <?php echo $usuario['ativo'] ? 'checked' : ''; ?>>
             Usuário Ativo
         </label>
-    </div>
-
-        <div class="section" style="background: #dbeafe; padding: 20px; border-radius: 8px; border-left: 4px solid #3b82f6; margin-top: 20px;">
-        <h3 style="color: #1e40af; margin-bottom: 15px;">🔐 Acesso ao Sistema</h3>
-        
-        <?php
-        // Verificar se já existe usuário vinculado
-        $sql = "SELECT id, ativo FROM usuarios WHERE vinculo_id = ? AND tipo_usuario = 'aluno'";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("i", $id);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $usuario_vinculado = $result->fetch_assoc();
-        $stmt->close();
-        ?>
-        
-        <?php if ($usuario_vinculado): ?>
-            <p style="color: #059669; margin-bottom: 10px;">
-                ✅ Este aluno já possui acesso ao sistema.
-            </p>
-            <p style="color: #1e40af;">
-                <strong>Email de login:</strong> <?php echo htmlspecialchars($aluno['email']); ?>
-            </p>
-            <p style="color: #6b7280; font-size: 0.9rem; margin-top: 10px;">
-                Status: 
-                <?php if ($usuario_vinculado['ativo']): ?>
-                    <span class="badge badge-success">Ativo</span>
-                <?php else: ?>
-                    <span class="badge badge-danger">Inativo</span>
-                <?php endif; ?>
-            </p>
-            <a href="../usuarios/editar.php?id=<?php echo $usuario_vinculado['id']; ?>" class="btn btn-primary btn-small" style="margin-top: 10px;">
-                Gerenciar Usuário
-            </a>
-        <?php else: ?>
-            <p style="color: #92400e; margin-bottom: 15px;">
-                ⚠️ Este aluno ainda não possui acesso ao sistema.
-            </p>
-            <a href="criar-usuario.php?aluno_id=<?php echo $id; ?>" class="btn btn-success">
-                ➕ Criar Acesso ao Sistema
-            </a>
-        <?php endif; ?>
     </div>
     
     <div class="form-actions">

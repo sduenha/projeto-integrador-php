@@ -23,7 +23,7 @@ if ($id == $_SESSION['usuario_id']) {
     exit;
 }
 
-$sql = "SELECT nome FROM usuarios WHERE id = ?";
+$sql = "SELECT nome FROM usuarios WHERE id_usuario = ?";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $id);
 $stmt->execute();
@@ -38,7 +38,7 @@ if ($result->num_rows === 0) {
 $usuario = $result->fetch_assoc();
 $stmt->close();
 
-$sql = "DELETE FROM usuarios WHERE id = ?";
+$sql = "DELETE FROM usuarios WHERE id_usuario = ?";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $id);
 

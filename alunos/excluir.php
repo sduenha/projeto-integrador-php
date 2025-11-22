@@ -2,6 +2,12 @@
 $nivel = 1;
 include '../includes/header.php';
 
+if (!isProprietario()) {
+    definirMensagem('error', 'Acesso negado! Apenas proprietários podem gerenciar modalidades.');
+    header('Location: index.php');
+    exit;
+}
+
 if (!isset($_GET['id'])) {
     definirMensagem('error', 'ID do aluno não informado');
     header('Location: index.php');
@@ -11,7 +17,7 @@ if (!isset($_GET['id'])) {
 $id = (int)$_GET['id'];
 
 // Verificar se aluno existe
-$sql = "SELECT nome FROM alunos WHERE id = ?";
+$sql = "SELECT nome FROM alunos WHERE id_aluno = ?";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $id);
 $stmt->execute();
@@ -26,8 +32,8 @@ if ($result->num_rows === 0) {
 $aluno = $result->fetch_assoc();
 $stmt->close();
 
-// Excluir aluno (CASCADE irá excluir as matrículas também)
-$sql = "DELETE FROM alunos WHERE id = ?";
+// Excluir aluno (CASCADE irá excluir matrículas)
+$sql = "DELETE FROM alunos WHERE id_aluno = ?";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $id);
 

@@ -11,8 +11,11 @@ if (!isset($_GET['id'])) {
 
 $id = (int)$_GET['id'];
 
-// Buscar dados do aluno
-$sql = "SELECT * FROM alunos WHERE id = ?";
+// Buscar dados do aluno com endereço
+$sql = "SELECT a.*, e.endereco, e.bairro, e.cep, e.numero
+        FROM alunos a
+        LEFT JOIN enderecos e ON a.id_endereco = e.id_endereco
+        WHERE a.id_aluno = ?";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $id);
 $stmt->execute();
@@ -27,15 +30,20 @@ if ($result->num_rows === 0) {
 $aluno = $result->fetch_assoc();
 $stmt->close();
 
-// Buscar aulas matriculadas
-$sql = "SELECT m.*, a.dia_semana, a.hora_inicio, a.hora_fim, 
-        mo.nome as modalidade_nome, p.nome as professor_nome
+// Buscar aulas matriculadas (RF10)
+$sql = "SELECT m.*, 
+        a.id_aula, a.vagas_disponiveis,
+        mo.nome as modalidade_nome, mo.duracao_minutos,
+        p.nome_professor as professor_nome,
+        GROUP_CONCAT(CONCAT(ah.dia_semana, ' ', TIME_FORMAT(ah.hora_inicio, '%H:%i'), '-', TIME_FORMAT(ah.hora_fim, '%H:%i')) SEPARATOR ', ') as horarios
         FROM matriculas m
-        JOIN aulas a ON m.aula_id = a.id
-        JOIN modalidades mo ON a.modalidade_id = mo.id
-        JOIN professores p ON a.professor_id = p.id
+        JOIN aulas a ON m.aula_id = a.id_aula
+        JOIN modalidades mo ON a.modalidade_id = mo.id_modalidade
+        JOIN professores p ON a.professor_id = p.id_professor
+        LEFT JOIN aula_horario ah ON a.id_aula = ah.id_aula
         WHERE m.aluno_id = ? AND m.ativo = 1
-        ORDER BY a.dia_semana, a.hora_inicio";
+        GROUP BY m.id_matricula
+        ORDER BY mo.nome";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $id);
 $stmt->execute();
@@ -56,7 +64,7 @@ $stmt->close();
     <div class="info-list">
         <div class="info-item">
             <span class="info-label">Nome:</span>
-            <span class="info-value"><?php echo htmlspecialchars($aluno['nome']); ?></span>
+            <span class="info-value"><strong><?php echo htmlspecialchars($aluno['nome']); ?></strong></span>
         </div>
         <div class="info-item">
             <span class="info-label">Email:</span>
@@ -64,15 +72,11 @@ $stmt->close();
         </div>
         <div class="info-item">
             <span class="info-label">Telefone:</span>
-            <span class="info-value"><?php echo htmlspecialchars($aluno['telefone']); ?></span>
+            <span class="info-value"><?php echo htmlspecialchars($aluno['telefone']) ?: '-'; ?></span>
         </div>
         <div class="info-item">
             <span class="info-label">Data de Nascimento:</span>
             <span class="info-value"><?php echo $aluno['data_nascimento'] ? date('d/m/Y', strtotime($aluno['data_nascimento'])) : '-'; ?></span>
-        </div>
-        <div class="info-item">
-            <span class="info-label">Endereço:</span>
-            <span class="info-value"><?php echo htmlspecialchars($aluno['endereco']) ?: '-'; ?></span>
         </div>
         <div class="info-item">
             <span class="info-label">Status:</span>
@@ -84,18 +88,42 @@ $stmt->close();
                 <?php endif; ?>
             </span>
         </div>
-        <div class="info-item">
-            <span class="info-label">Data de Cadastro:</span>
-            <span class="info-value"><?php echo date('d/m/Y H:i', strtotime($aluno['data_cadastro'])); ?></span>
-        </div>
     </div>
+</div>
+
+<div class="section">
+    <h3 class="section-title">Endereço</h3>
+    
+    <?php if (!empty($aluno['endereco']) || !empty($aluno['bairro'])): ?>
+        <div class="info-list">
+            <?php if ($aluno['endereco']): ?>
+                <div class="info-item">
+                    <span class="info-label">Logradouro:</span>
+                    <span class="info-value"><?php echo htmlspecialchars($aluno['endereco']); ?><?php echo $aluno['numero'] ? ', ' . htmlspecialchars($aluno['numero']) : ''; ?></span>
+                </div>
+            <?php endif; ?>
+            <?php if ($aluno['bairro']): ?>
+                <div class="info-item">
+                    <span class="info-label">Bairro:</span>
+                    <span class="info-value"><?php echo htmlspecialchars($aluno['bairro']); ?></span>
+                </div>
+            <?php endif; ?>
+            <?php if ($aluno['cep']): ?>
+                <div class="info-item">
+                    <span class="info-label">CEP:</span>
+                    <span class="info-value"><?php echo htmlspecialchars($aluno['cep']); ?></span>
+                </div>
+            <?php endif; ?>
+        </div>
+    <?php else: ?>
+        <p style="color: var(--gray-text);">Endereço não cadastrado</p>
+    <?php endif; ?>
 </div>
 
 <div class="section">
     <h3 class="section-title">🔐 Acesso ao Sistema</h3>
     
     <?php
-    // Verificar se existe usuário vinculado
     $sql = "SELECT u.*, 
             CASE WHEN u.ultimo_acesso IS NOT NULL THEN 'Sim' ELSE 'Nunca' END as ja_acessou
             FROM usuarios u
@@ -154,7 +182,7 @@ $stmt->close();
 </div>
 
 <div class="section">
-    <h3 class="section-title">Aulas Matriculadas (RF10)</h3>
+    <h3 class="section-title">Aulas Matriculadas</h3>
     
     <?php if ($matriculas && $matriculas->num_rows > 0): ?>
         <div class="table-container">
@@ -163,18 +191,18 @@ $stmt->close();
                     <tr>
                         <th>Modalidade</th>
                         <th>Professor</th>
-                        <th>Dia da Semana</th>
-                        <th>Horário</th>
-                        <th>Data Matrícula</th>
+                        <th>Horários</th>
+                        <th>Duração</th>
+                        <th>Data da Matrícula</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php while ($mat = $matriculas->fetch_assoc()): ?>
                         <tr>
-                            <td><?php echo htmlspecialchars($mat['modalidade_nome']); ?></td>
+                            <td><strong><?php echo htmlspecialchars($mat['modalidade_nome']); ?></strong></td>
                             <td><?php echo htmlspecialchars($mat['professor_nome']); ?></td>
-                            <td><?php echo $mat['dia_semana']; ?></td>
-                            <td><?php echo date('H:i', strtotime($mat['hora_inicio'])) . ' - ' . date('H:i', strtotime($mat['hora_fim'])); ?></td>
+                            <td><?php echo $mat['horarios'] ?: 'Sem horários'; ?></td>
+                            <td><?php echo $mat['duracao_minutos']; ?> min</td>
                             <td><?php echo date('d/m/Y', strtotime($mat['data_matricula'])); ?></td>
                         </tr>
                     <?php endwhile; ?>

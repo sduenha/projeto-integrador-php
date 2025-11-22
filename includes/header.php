@@ -38,7 +38,7 @@ $conn = conectarBanco();
             </div>
         </header>
 
-        <nav>
+        <!-- <nav>
             <ul>
                 <li><a href="<?php echo isset($nivel) ? str_repeat('../', $nivel) : ''; ?>index.php">🏠 Início</a></li>
                 
@@ -55,6 +55,29 @@ $conn = conectarBanco();
                     <li><a href="<?php echo isset($nivel) ? str_repeat('../', $nivel) : ''; ?>alunos/visualizar.php?id=<?php echo $_SESSION['vinculo_id']; ?>">📋 Minhas Aulas</a></li>
                     <li><a href="<?php echo isset($nivel) ? str_repeat('../', $nivel) : ''; ?>aulas/index.php">📅 Ver Aulas</a></li>
                 <?php endif; ?>
+            </ul>
+        </nav> -->
+
+        <nav class="nav-menu">
+            <ul>
+                <?php if (isProprietario()): ?>
+                    <li><a href="<?php echo isset($nivel) ? str_repeat('../', $nivel) : ''; ?>index.php">🏠 Início</a></li>
+                    <li><a href="<?php echo isset($nivel) ? str_repeat('../', $nivel) : ''; ?>alunos/index.php">👥 Alunos</a></li>
+                    <li><a href="<?php echo isset($nivel) ? str_repeat('../', $nivel) : ''; ?>professores/index.php">👨‍🏫 Professores</a></li>
+                    <li><a href="<?php echo isset($nivel) ? str_repeat('../', $nivel) : ''; ?>modalidades/index.php">🎭 Modalidades</a></li>
+                    <li><a href="<?php echo isset($nivel) ? str_repeat('../', $nivel) : ''; ?>aulas/index.php">📅 Aulas</a></li>
+                    <li><a href="<?php echo isset($nivel) ? str_repeat('../', $nivel) : ''; ?>usuarios/index.php">🔐 Usuários</a></li>
+                    <li><a href="<?php echo isset($nivel) ? str_repeat('../', $nivel) : ''; ?>perfil.php">🪪 Meu Perfil</a></li>
+                <?php elseif (isProfessor()): ?>
+                    <li><a href="<?php echo isset($nivel) ? str_repeat('../', $nivel) : ''; ?>index.php">🏠 Início</a></li>
+                    <li><a href="<?php echo isset($nivel) ? str_repeat('../', $nivel) : ''; ?>aulas/index.php">📅 Ver Aulas</a></li>
+                    <li><a href="<?php echo isset($nivel) ? str_repeat('../', $nivel) : ''; ?>perfil.php">🪪 Meu Perfil</a></li>
+                <?php elseif (isAluno()): ?>
+                    <li><a href="<?php echo isset($nivel) ? str_repeat('../', $nivel) : ''; ?>index.php">🏠 Início</a></li>
+                    <li><a href="<?php echo isset($nivel) ? str_repeat('../', $nivel) : ''; ?>aulas/index.php">📅 Ver Aulas</a></li>
+                    <li><a href="<?php echo isset($nivel) ? str_repeat('../', $nivel) : ''; ?>perfil.php">🪪 Meu Perfil</a></li>
+                <?php endif; ?>
+                <li><a href="<?php echo isset($nivel) ? str_repeat('../', $nivel) : ''; ?>logout.php">🚪 Sair</a></li>
             </ul>
         </nav>
 

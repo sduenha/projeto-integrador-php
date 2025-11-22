@@ -224,14 +224,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="form-group">
                     <label for="email">📧 Email</label>
                     <input type="email" id="email" name="email" required autofocus 
-                           placeholder="admin@sistema.com"
+                           placeholder="email"
                            value="<?php echo isset($_POST['email']) ? htmlspecialchars($_POST['email']) : ''; ?>">
                 </div>
 
                 <div class="form-group">
                     <label for="senha">🔒 Senha</label>
                     <input type="password" id="senha" name="senha" required 
-                           placeholder="admin123">
+                           placeholder="senha">
                 </div>
 
                 <button type="submit" class="btn-login">
@@ -239,19 +239,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </button>
             </form>
 
-            <div class="helper-links">
+            <!-- <div class="helper-links">
                 <h4>⚠️ Problemas para fazer login?</h4>
                 <a href="criar-admin.php" target="_blank">🔧 Criar/Resetar Admin</a>
                 <a href="test-password.php" target="_blank">🧪 Testar Senhas</a>
-            </div>
+            </div> -->
 
-            <div class="credenciais-teste">
+            <!-- <div class="credenciais-teste">
                 <h4>🔑 Credenciais Padrão:</h4>
                 <strong>Email:</strong>
                 <code>admin@sistema.com</code>
                 <strong>Senha:</strong>
                 <code>admin123</code>
-            </div>
+            </div> -->
         </div>
 
         <div class="login-footer">

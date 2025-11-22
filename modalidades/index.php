@@ -5,7 +5,7 @@ include '../includes/header.php';
 
 // Buscar todas as modalidades
 $sql = "SELECT m.*, 
-        (SELECT COUNT(*) FROM aulas WHERE modalidade_id = m.id AND ativo = 1) as total_aulas
+        (SELECT COUNT(*) FROM aulas WHERE modalidade_id = m.id_modalidade AND ativo = 1) as total_aulas
         FROM modalidades m 
         ORDER BY m.nome ASC";
 $result = $conn->query($sql);
@@ -13,7 +13,9 @@ $result = $conn->query($sql);
 
 <div class="content-header">
     <h2>Gerenciamento de Modalidades</h2>
-    <a href="cadastrar.php" class="btn btn-primary">➕ Nova Modalidade</a>
+    <?php if (isProprietario()): ?>
+        <a href="cadastrar.php" class="btn btn-primary">➕ Nova Modalidade</a>
+    <?php endif; ?>
 </div>
 
 <?php if ($result && $result->num_rows > 0): ?>
@@ -33,7 +35,7 @@ $result = $conn->query($sql);
             <tbody>
                 <?php while ($modalidade = $result->fetch_assoc()): ?>
                     <tr>
-                        <td><?php echo $modalidade['id']; ?></td>
+                        <td><?php echo $modalidade['id_modalidade']; ?></td>
                         <td><strong><?php echo htmlspecialchars($modalidade['nome']); ?></strong></td>
                         <td><?php echo $modalidade['duracao_minutos']; ?> min</td>
                         <td><?php echo $modalidade['vagas_maximas']; ?></td>
@@ -46,8 +48,12 @@ $result = $conn->query($sql);
                             <?php endif; ?>
                         </td>
                         <td class="table-actions">
-                            <a href="editar.php?id=<?php echo $modalidade['id']; ?>" class="btn btn-primary btn-small">✏️ Editar</a>
-                            <a href="excluir.php?id=<?php echo $modalidade['id']; ?>" class="btn btn-danger btn-small" onclick="return confirm('Tem certeza que deseja excluir esta modalidade?')">🗑️ Excluir</a>
+                            <?php if (isProprietario()): ?>
+                                <a href="editar.php?id=<?php echo $modalidade['id_modalidade']; ?>" class="btn btn-primary btn-small">✏️ Editar</a>
+                                <a href="excluir.php?id=<?php echo $modalidade['id_modalidade']; ?>" class="btn btn-danger btn-small" onclick="return confirm('Tem certeza que deseja excluir esta modalidade?')">🗑️ Excluir</a>
+                            <?php else: ?>
+                                <span style="color: var(--gray-text); font-size: 0.9rem;">Visualização apenas</span>
+                            <?php endif; ?>
                         </td>
                     </tr>
                 <?php endwhile; ?>

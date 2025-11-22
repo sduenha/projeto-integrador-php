@@ -12,7 +12,7 @@ if (!isset($_GET['aluno_id'])) {
 $aluno_id = (int)$_GET['aluno_id'];
 
 // Buscar dados do aluno
-$sql = "SELECT * FROM alunos WHERE id = ?";
+$sql = "SELECT * FROM alunos WHERE id_aluno = ?";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $aluno_id);
 $stmt->execute();
@@ -28,7 +28,7 @@ $aluno = $result->fetch_assoc();
 $stmt->close();
 
 // Verificar se já existe usuário
-$sql = "SELECT id FROM usuarios WHERE vinculo_id = ? AND tipo_usuario = 'aluno'";
+$sql = "SELECT id_usuario FROM usuarios WHERE vinculo_id = ? AND tipo_usuario = 'aluno'";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $aluno_id);
 $stmt->execute();
@@ -130,6 +130,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <script>
 document.getElementById('senha_inicial').addEventListener('input', function() {
     const senhaPreview = document.getElementById('senha-preview');
+    senhaPreview.textContent = this.value || '(será exibida após digitar)';
 });
 </script>
 

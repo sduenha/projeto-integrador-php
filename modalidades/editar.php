@@ -3,6 +3,12 @@ $titulo = "Editar Modalidade";
 $nivel = 1;
 include '../includes/header.php';
 
+if (!isProprietario()) {
+    definirMensagem('error', 'Acesso negado! Apenas proprietários podem gerenciar modalidades.');
+    header('Location: index.php');
+    exit;
+}
+
 if (!isset($_GET['id'])) {
     definirMensagem('error', 'ID da modalidade não informado');
     header('Location: index.php');
@@ -12,7 +18,7 @@ if (!isset($_GET['id'])) {
 $id = (int)$_GET['id'];
 
 // Buscar dados da modalidade
-$sql = "SELECT * FROM modalidades WHERE id = ?";
+$sql = "SELECT * FROM modalidades WHERE id_modalidade = ?";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $id);
 $stmt->execute();
@@ -49,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     
     if (empty($erros)) {
-        $sql = "UPDATE modalidades SET nome = ?, descricao = ?, duracao_minutos = ?, vagas_maximas = ?, ativo = ? WHERE id = ?";
+        $sql = "UPDATE modalidades SET nome = ?, descricao = ?, duracao_minutos = ?, vagas_maximas = ?, ativo = ? WHERE id_modalidade = ?";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("ssiiii", $nome, $descricao, $duracao_minutos, $vagas_maximas, $ativo, $id);
         
@@ -91,19 +97,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="form-row">
         <div class="form-group">
             <label for="duracao_minutos">Duração (minutos) *</label>
-            <input type="number" id="duracao_minutos" name="duracao_minutos" required min="1" value="<?php echo $_POST['duracao_minutos']; ?>">
+            <input type="number" id="duracao_minutos" name="duracao_minutos" required min="1" 
+                   value="<?php echo $_POST['duracao_minutos']; ?>">
         </div>
         
         <div class="form-group">
             <label for="vagas_maximas">Vagas Máximas *</label>
-            <input type="number" id="vagas_maximas" name="vagas_maximas" required min="1" value="<?php echo $_POST['vagas_maximas']; ?>">
+            <input type="number" id="vagas_maximas" name="vagas_maximas" required min="1" 
+                   value="<?php echo $_POST['vagas_maximas']; ?>">
         </div>
     </div>
     
     <div class="form-group">
         <label>
-            <input type="checkbox" name="ativo" <?php echo $modalidade['ativo'] ? 'checked' : ''; ?>>
             Modalidade Ativa
+            <input type="checkbox" name="ativo" <?php echo $modalidade['ativo'] ? 'checked' : ''; ?>>
         </label>
     </div>
     

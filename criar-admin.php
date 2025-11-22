@@ -14,7 +14,7 @@ $tipo = "proprietario";
 $senha_hash = password_hash($senha, PASSWORD_DEFAULT);
 
 // Verificar se já existe
-$sql = "SELECT id FROM usuarios WHERE email = ?";
+$sql = "SELECT id_usuario FROM usuarios WHERE email = ?";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("s", $email);
 $stmt->execute();
@@ -23,9 +23,9 @@ $result = $stmt->get_result();
 if ($result->num_rows > 0) {
     // Atualizar
     $usuario = $result->fetch_assoc();
-    $id = $usuario['id'];
+    $id = $usuario['id_usuario'];
     
-    $sql = "UPDATE usuarios SET nome = ?, senha = ?, tipo_usuario = ?, ativo = 1 WHERE id = ?";
+    $sql = "UPDATE usuarios SET nome = ?, senha = ?, tipo_usuario = ?, ativo = 1 WHERE id_usuario = ?";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("sssi", $nome, $senha_hash, $tipo, $id);
     
@@ -64,7 +64,7 @@ if ($result->num_rows > 0) {
     
     echo "<p><strong>Usuário encontrado:</strong></p>";
     echo "<ul>";
-    echo "<li><strong>ID:</strong> {$usuario['id']}</li>";
+    echo "<li><strong>ID:</strong> {$usuario['id_usuario']}</li>";
     echo "<li><strong>Nome:</strong> {$usuario['nome']}</li>";
     echo "<li><strong>Email:</strong> {$usuario['email']}</li>";
     echo "<li><strong>Tipo:</strong> {$usuario['tipo_usuario']}</li>";

@@ -12,7 +12,7 @@ if (!isset($_GET['id'])) {
 $id = (int)$_GET['id'];
 
 // Buscar dados do professor
-$sql = "SELECT * FROM professores WHERE id = ?";
+$sql = "SELECT * FROM professores WHERE id_professor = ?";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $id);
 $stmt->execute();
@@ -29,8 +29,8 @@ $stmt->close();
 
 // Buscar modalidades vinculadas
 $sql = "SELECT m.* FROM modalidades m
-        JOIN professor_modalidade pm ON m.id = pm.modalidade_id
-        WHERE pm.professor_id = ?
+        JOIN professor_modalidade pm ON m.id_modalidade = pm.id_modalidade
+        WHERE pm.id_professor = ?
         ORDER BY m.nome";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $id);
@@ -38,13 +38,13 @@ $stmt->execute();
 $modalidades = $stmt->get_result();
 $stmt->close();
 
-// Buscar aulas do professor (RF9)
+// Buscar aulas do professor
 $sql = "SELECT a.*, m.nome as modalidade_nome, m.duracao_minutos,
-        (SELECT COUNT(*) FROM matriculas WHERE aula_id = a.id AND ativo = 1) as total_alunos
+        (SELECT COUNT(*) FROM matriculas WHERE aula_id = a.id_aula AND ativo = 1) as total_alunos
         FROM aulas a
-        JOIN modalidades m ON a.modalidade_id = m.id
+        JOIN modalidades m ON a.modalidade_id = m.id_modalidade
         WHERE a.professor_id = ? AND a.ativo = 1
-        ORDER BY FIELD(a.dia_semana, 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'), a.hora_inicio";
+        ORDER BY a.id_aula";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $id);
 $stmt->execute();
@@ -65,7 +65,7 @@ $stmt->close();
     <div class="info-list">
         <div class="info-item">
             <span class="info-label">Nome:</span>
-            <span class="info-value"><?php echo htmlspecialchars($professor['nome']); ?></span>
+            <span class="info-value"><?php echo htmlspecialchars($professor['nome_professor']); ?></span>
         </div>
         <div class="info-item">
             <span class="info-label">Email:</span>
@@ -89,10 +89,6 @@ $stmt->close();
                 <?php endif; ?>
             </span>
         </div>
-        <div class="info-item">
-            <span class="info-label">Data de Cadastro:</span>
-            <span class="info-value"><?php echo date('d/m/Y H:i', strtotime($professor['data_cadastro'])); ?></span>
-        </div>
     </div>
 </div>
 
@@ -113,16 +109,15 @@ $stmt->close();
 </div>
 
 <div class="section">
-    <h3 class="section-title">Aulas Ministradas (RF9)</h3>
+    <h3 class="section-title">Aulas Ministradas</h3>
     
     <?php if ($aulas && $aulas->num_rows > 0): ?>
         <div class="table-container">
             <table>
                 <thead>
                     <tr>
+                        <th>ID</th>
                         <th>Modalidade</th>
-                        <th>Dia da Semana</th>
-                        <th>Horário</th>
                         <th>Duração</th>
                         <th>Vagas Disponíveis</th>
                         <th>Alunos Matriculados</th>
@@ -131,9 +126,8 @@ $stmt->close();
                 <tbody>
                     <?php while ($aula = $aulas->fetch_assoc()): ?>
                         <tr>
+                            <td><?php echo $aula['id_aula']; ?></td>
                             <td><?php echo htmlspecialchars($aula['modalidade_nome']); ?></td>
-                            <td><?php echo $aula['dia_semana']; ?></td>
-                            <td><?php echo date('H:i', strtotime($aula['hora_inicio'])) . ' - ' . date('H:i', strtotime($aula['hora_fim'])); ?></td>
                             <td><?php echo $aula['duracao_minutos']; ?> min</td>
                             <td><?php echo $aula['vagas_disponiveis']; ?></td>
                             <td><strong><?php echo $aula['total_alunos']; ?></strong></td>
